@@ -19,8 +19,22 @@ router.get('/:todoId', async function(req, res, next) {
 
     const todo = await Todo.findOne().where('_id').equals(req.params.todoId).exec()
     
-    return res.status(200).json(todo)
+    if (todo){
+        return res.status(200).json({
+            "id": todo._id,
+            "title": todo.title,
+            "description": todo.description,
+            "dateCreated": todo.dateCreated,
+            "complete": todo.complete,
+            "dateCompleted": todo.dateCompleted,
+            "creator": todo.creator
+
+        })
+    } else {
+        return res.status(401).json({"error": "Not Found"});
+    }
 });
+
 
 router.use(function(req, res, next) {
         console.log(req.header("Authorization"))
@@ -36,6 +50,7 @@ router.use(function(req, res, next) {
         }
         next()
     })
+
 
 
 
