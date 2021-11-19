@@ -61,11 +61,30 @@ router.post('/', async function (req, res) {
         });
     })
 
-router.patch('/', async function (req, res){
-    const todo = await Todo.findById(req.body.id)
+router.delete('/:todoId', async function (req, res){
+    
+    const todo = await Todo.findByIdAndDelete(req.params.todoId).where('creator').equals(req.payload.id).exec()
+    if (todo){
+        return res.status(200).json(todo)
+    } else {
+        return res.status(401).json({"error": "Unauthorized"});
+    }
+})
 
+router.patch('/:todoId', async function (req, res){
+        const todo = await Todo.findOne().where('creator').equals(req.payload.id).exec()
+        if (todo){await Todo.findByIdAndUpdate(req.params.todoId,
+            {"complete" : req.body.complete,
+            "dateCompleted": req.body.dateCompleted},
+            {new: true}).then( updateTodo => {
+                return res.status(201).json(updateTodo)
+            }).catch( error => {
+                return res.status(500).json({"error": error.message})
+            });} else {
+                return res.status(401).json({"error": "Unauthorized"});
+            }
 
-
+        
 })
 
 module.exports = router;
