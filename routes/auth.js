@@ -8,7 +8,7 @@ const User = require('../models/User');
 
 const saltRounds = 10;
 
-const privateKey = process.env.JWT_PRIVATE_KEY;
+const privateKey = JWT_PRIVATE_KEY;
 
 router.get('/users', async function(req, res, next) {
     const users = await User.find()
