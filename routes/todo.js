@@ -6,8 +6,13 @@ const Todo = require('../models/Todo')
 const privateKey = process.env.JWT_PRIVATE_KEY;
 
 router.get('/', async function(req, res, next) {
-    const todos = await Todo.find()
-    return res.status(200).json({"todos": todos})
+    const todos = await Todo.find().exec()
+    if (todos){
+        return res.status(200).json({"todos": todos})
+    } else {
+        return res.status(401).json({"error": "No todos found..."});
+    }
+    
 });
 
 router.get('/:todoId', async function(req, res, next) {
@@ -65,26 +70,44 @@ router.delete('/:todoId', async function (req, res){
     
     const todo = await Todo.findByIdAndDelete(req.params.todoId).where('creator').equals(req.payload.id).exec()
     if (todo){
-        return res.status(200).json(todo)
+        return res.status(200).json({
+            "id": todo._id,
+            "title": todo.title,
+            "description": todo.description,
+            "dateCreated": todo.dateCreated,
+            "complete": todo.complete,
+            "dateCompleted": todo.dateCompleted,
+            "creator": todo.creator
+
+        })
     } else {
         return res.status(401).json({"error": "Unauthorized"});
     }
 })
 
 router.patch('/:todoId', async function (req, res){
-        const todo = await Todo.findOne().where('creator').equals(req.payload.id).exec()
-        if (todo){await Todo.findByIdAndUpdate(req.params.todoId,
+        
+        const todo = await Todo.findById(req.params.todoId).where('creator').equals(req.payload.id).exec()
+        if (todo){
+            await Todo.findByIdAndUpdate(req.params.todoId,
             {"complete" : req.body.complete,
             "dateCompleted": req.body.dateCompleted},
             {new: true}).then( updateTodo => {
-                return res.status(201).json(updateTodo)
+                return res.status(201).json({
+                    "id": updateTodo._id,
+                    "title": updateTodo.title,
+                    "description": updateTodo.description,
+                    "dateCreated": updateTodo.dateCreated,
+                    "complete": updateTodo.complete,
+                    "dateCompleted": updateTodo.dateCompleted,
+                    "creator": updateTodo.creator
+    
+                })
             }).catch( error => {
                 return res.status(500).json({"error": error.message})
             });} else {
                 return res.status(401).json({"error": "Unauthorized"});
             }
-
-        
 })
 
 module.exports = router;
